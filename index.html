@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rick Gallery — API REST Demo</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>🧬 Rick Gallery</h1>
+      <p class="app-subtitle">
+        6 personajes "Rick" de la Rick & Morty API
+      </p>
+    </header>
+
+    <main class="app-main">
+      <!-- Badge de debug: muestra estado interno en pantalla -->
+      <div id="state-badge" class="state-badge">estado: idle</div>
+
+      <!-- LOADING -->
+      <div id="state-loading" class="state-panel state--loading hidden">
+        <div class="spinner"></div>
+        <p>Consultando la API...</p>
+      </div>
+
+      <!-- ERROR -->
+      <div
+        id="state-error"
+        class="state-panel state--error hidden"
+        role="alert"
+        aria-live="assertive"
+      >
+        <p class="error-icon">⚠️</p>
+        <p id="error-message"></p>
+        <button id="retry-btn" class="btn btn--retry">🔄 Reintentar</button>
+      </div>
+
+      <!-- SUCCESS: grilla de cards -->
+      <div id="state-success" class="hidden">
+        <p id="results-count" class="results-count"></p>
+        <div id="cards-grid" class="cards-grid"></div>
+      </div>
+    </main>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
