@@ -101,6 +101,32 @@ http://127.0.0.1:8095
 - Si todo sale bien, renderiza una grilla con hasta 6 personajes.
 - El botón `Retry` vuelve a cargar la galería en caso de falla.
 
+## Buscador y comportamiento del botón `Retry`
+
+Se agregó un buscador en la cabecera para consultar la API por nombre y una lista de sugerencias rápidas.
+
+- `#search-form` / `#search-input`: formulario para escribir el término a buscar y presionar `Buscar`.
+- `.suggestion-list`: lista de botones rápidos (Rick, Morty, Summer, Beth). Al hacer clic en una sugerencia, el nombre se copia en el campo de búsqueda pero NO se realiza la consulta automáticamente — tenés que presionar `Buscar` para ejecutar la petición. Esto permite editar el término antes de buscar.
+
+Comportamiento del botón `Retry`:
+
+- `#retry-btn` aparece únicamente cuando el estado es `error` (panel de error visible).
+- `Retry` ahora intentará primero la última búsqueda exitosa (`lastSuccessfulQuery`). Si no hay ninguna búsqueda exitosa previa, hará fallback a la última búsqueda intentada (`lastQuery`). Si no existe ninguna consulta almacenada, enfocará el campo de búsqueda para que ingreses un término nuevo.
+
+Esto hace que `Retry` sea más útil: evita repetir automáticamente una búsqueda fallida y facilita volver a una consulta que previamente sí devolvió resultados.
+
+Cómo probarlo rápidamente:
+
+1. Buscar `morty` (debe mostrar resultados).
+2. Buscar `asdfasdf` (término inexistente) — aparecerá el panel de error con `🔄 Reintentar`.
+3. Pulsar `🔄 Reintentar` — reintentará `morty` (última búsqueda exitosa) en lugar de repetir la búsqueda fallida.
+
+Archivos modificados relacionados:
+
+- `index.html` — formulario de búsqueda y lista de sugerencias.
+- `styles.css` — estilos para barra de búsqueda y sugerencias.
+- `src/main.js` — lógica del buscador, manejo de sugerencias y mejora del comportamiento de `Retry`.
+
 ---
 
 ## Notas importantes

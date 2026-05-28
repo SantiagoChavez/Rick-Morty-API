@@ -29,6 +29,9 @@ const state = {
 const $searchForm = document.querySelector("#search-form");
 const $searchInput = document.querySelector("#search-input");
 const $suggestions = document.querySelectorAll(".suggestion-btn");
+const $retryBtn = document.querySelector("#retry-btn");
+let lastQuery = "morty";
+let lastSuccessfulQuery = null;
 
 $searchForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -54,10 +57,12 @@ function setState(updates) {
 //           setState loading -> getFirstSixCharacters -> toCharacterProfileList
 //           -> setState success / catch -> setState error con getUserMessage
 async function loadGallery(name) {
+  lastQuery = name;
   setState({ status: "loading", data: null, error: null });
     try {        
         const rawCharacters = await getFirstSixCharacters(name);
         const profiles = toCharacterProfileList(rawCharacters);
+        lastSuccessfulQuery = name;
         setState({ status: "success", data: profiles, error: null });
     } catch (err) {
         const message = getUserMessage(err);
@@ -65,9 +70,16 @@ async function loadGallery(name) {
     }
 } 
 // TODO 7: Agregar event listener al #retry-btn
-document.querySelector("#retry-btn").addEventListener("click", () => {
-    loadGallery("rick");
-});
+if ($retryBtn) {
+  $retryBtn.addEventListener("click", () => {
+    const target = lastSuccessfulQuery ?? lastQuery;
+    if (target) {
+      loadGallery(target);
+    } else {
+      $searchInput.focus();
+    }
+  });
+}
 // TODO 8: Llamar loadGallery("morty") al inicio
 // ============================================================
 loadGallery("morty");
