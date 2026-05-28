@@ -11,57 +11,63 @@
 //
 // Tu tarea: reemplazar esto con el pipeline correcto
 // ============================================================
-
-async function loadRicks() {
-  // ❌ Bug 1: URL concatenada -> falla con espacios o caracteres especiales
-  const url = "https://rickandmortyapi.com/api/character/?name=rick&page=1";
-
-  // ❌ Bug 2: sin response.ok -> 404 no va al catch
-  const response = await fetch(url);
-  const data = await response.json();
-
-  // ❌ Bug 3: accede a data directamente, no a data.results
-  // Si la API devuelve { info: ..., results: [...] }, data es el objeto raíz.
-  const characters = data; // debería ser data.results
-
-  // ❌ Bug 4: intenta iterar sobre el objeto raíz (no el array)
-  // ❌ Bug 5: accede a character.origin.name sin ?. si llegara un dato incompleto
-  const grid = document.querySelector("#cards-grid");
-
-  if (grid && Array.isArray(characters)) {
-    grid.innerHTML = characters
-      .slice(0, 6)
-      .map(
-        (character) => `
-          <article class="card">
-            <img class="card__image" src="${character.image}" alt="${character.name}" />
-            <div class="card__body">
-              <h2 class="card__name">${character.name}</h2>
-              <p>${character.status} — ${character.species}</p>
-              <p>Origen: ${character.origin.name}</p>
-            </div>
-          </article>
-        `
-      )
-      .join("");
-
-    document.querySelector("#state-success")?.classList.remove("hidden");
-  } else {
-    console.warn("Anti-patrón detectado: characters no es un array:", characters);
-  }
-}
-
-loadRicks();
+import { getFirstSixCharacters } from "./services/rmApi.js";
+import { toCharacterProfileList } from "./transform/character.js";
+import { render, getUserMessage } from "./ui/characterGrid.js"; 
 
 // ============================================================
 // TODO 1: Importar getFirstSixCharacters desde ./services/rmApi.js
 // TODO 2: Importar toCharacterProfileList desde ./transform/character.js
 // TODO 3: Importar render y getUserMessage desde ./ui/characterGrid.js
 // TODO 4: Crear objeto state con { status, data, error }
+const state = {
+    status: "idle",
+    data: null,
+    error: null,
+  };
+
+const $searchForm = document.querySelector("#search-form");
+const $searchInput = document.querySelector("#search-input");
+const $suggestions = document.querySelectorAll(".suggestion-btn");
+
+$searchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const query = $searchInput.value.trim();
+  if (query) {
+    loadGallery(query);
+  }
+});
+
+$suggestions.forEach((button) => {
+  button.addEventListener("click", () => {
+    $searchInput.value = button.dataset.query;
+    $searchInput.focus();
+  });
+});
+
 // TODO 5: Crear función setState(updates) que fusiona y llama render(state)
+function setState(updates) {
+    Object.assign(state, updates);
+    render(state);
+}
 // TODO 6: Implementar loadGallery(name):
 //           setState loading -> getFirstSixCharacters -> toCharacterProfileList
 //           -> setState success / catch -> setState error con getUserMessage
+async function loadGallery(name) {
+  setState({ status: "loading", data: null, error: null });
+    try {        
+        const rawCharacters = await getFirstSixCharacters(name);
+        const profiles = toCharacterProfileList(rawCharacters);
+        setState({ status: "success", data: profiles, error: null });
+    } catch (err) {
+        const message = getUserMessage(err);
+        setState({ status: "error", data: null, error: message });
+    }
+} 
 // TODO 7: Agregar event listener al #retry-btn
-// TODO 8: Llamar loadGallery("rick") al inicio
+document.querySelector("#retry-btn").addEventListener("click", () => {
+    loadGallery("rick");
+});
+// TODO 8: Llamar loadGallery("morty") al inicio
 // ============================================================
+loadGallery("morty");

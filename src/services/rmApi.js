@@ -21,9 +21,25 @@ const BASE_URL = "https://rickandmortyapi.com/api/character/";
 // Ejemplo de URL resultante:
 //   "https://rickandmortyapi.com/api/character/?name=rick&page=1"
 //
-// export function buildUrl({ name, page = 1 }) { ... }
+export function buildUrl({ name, page = 1 }) {
+    const params = new URLSearchParams({ name: name.trim(), page: String(page) });
+    return `${BASE_URL}?${params.toString()}`;
+}
 
 // TODO 2: Implementar fetchCharacters(name)
+
+export async function fetchCharacters(name) {
+    const url = buildUrl({ name, page: 1 });
+    const data = await fetchJson(url);
+    const results = data.results;
+
+    if (!Array.isArray(results) || results.length === 0) {
+        const err = new Error("No results found");
+        err.code = "NO_RESULTS";
+        throw err;
+    }
+    return results;
+}
 //
 // Busca personajes y devuelve el ARRAY crudo de resultados.
 //
@@ -52,6 +68,11 @@ const BASE_URL = "https://rickandmortyapi.com/api/character/";
 // export async function fetchCharacters(name) { ... }
 
 // TODO 3: Implementar getFirstSixCharacters(name)
+
+export async function getFirstSixCharacters(name) {
+    const results = await fetchCharacters(name);
+    return results.slice(0, 6);
+}
 //
 // Llama a fetchCharacters(name) y retorna solo los primeros 6 resultados.
 // Tip: Array.slice(0, 6)

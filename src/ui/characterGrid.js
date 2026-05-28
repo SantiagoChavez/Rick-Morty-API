@@ -15,7 +15,24 @@ const $count = document.querySelector("#results-count");
 const $badge = document.querySelector("#state-badge");
 
 // TODO 1: Implementar render(state)
-//
+export function render(state) {
+    [$loading, $error, $success].forEach((el) => {
+    el.classList.add("hidden");
+  });
+  $badge.textContent = `estado: ${state.status}`;
+
+  if (state.status === "loading") {
+    $loading.classList.remove("hidden");
+    } else if (state.status === "error") {
+    $error.classList.remove("hidden");
+    $errMsg.textContent = state.error;
+    } else if (state.status === "success") {
+    $success.classList.remove("hidden");
+    const profiles = state.data;
+    $count.textContent = `Mostrando ${profiles.length} personajes`;
+    $grid.innerHTML = profiles.map(buildCard).join("");
+  }
+ }
 // Patrón: ocultar todo -> mostrar solo el panel del estado actual.
 //
 // Pasos:
@@ -39,7 +56,27 @@ const $badge = document.querySelector("#state-badge");
 // export function render(state) { ... }
 
 // TODO 2: Implementar buildCard(profile)
-//
+function buildCard(profile) {
+    return `
+    <article class="card">
+      <img class="card__image" src="${profile.image}" alt="..." loading="lazy" />
+      <div class="card__body">
+        <h2 class="card__name">${profile.name}</h2>
+        <div class="card__meta">
+          <span class="status-dot status-dot--${profile.statusClass}"></span>
+          <span class="card__status-text">${profile.status} — ${profile.species}</span>
+        </div>
+        <p class="card__detail">🌍 Origen: <span>${profile.originName}</span></p>
+        <p class="card__detail">📍 Ubicación: <span>${profile.locationName}</span></p>
+      </div>
+    </article>
+  `;
+}
+
+
+
+
+
 // Recibe UN ViewModel (ya limpio) y retorna el HTML string de la card.
 //
 //   <article class="card">
@@ -61,6 +98,18 @@ const $badge = document.querySelector("#state-badge");
 //
 // Traduce errores técnicos a mensajes entendibles.
 //
+export function getUserMessage(error) {
+  if (error?.code === "NO_RESULTS") {
+    return "No encontramos personajes con ese nombre.";
+  }
+  if (error?.status === 404) {
+    return "El recurso solicitado no existe (404).";
+  }
+  if (!navigator.onLine) {
+    return "Sin conexión a internet. Verificá tu red y reintentá.";
+  }
+  return `Error inesperado: ${error?.message ?? "Algo salió mal"}`;
+}
 // Casos:
 //   - error.code === "NO_RESULTS" -> "No encontramos personajes con ese nombre."
 //   - error.status === 404 -> "El recurso no existe (404)."

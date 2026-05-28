@@ -1,319 +1,125 @@
-# Rick Gallery — Starter M3L4
+# Rick Gallery API M3L4 HENRY practica
 
-Este es el punto de partida para el Hands On de **Consumiendo APIs REST y Estructuras de Datos**.
+Este proyecto es un mini-dashboard que consume la API de **Rick and Morty** y muestra una galería de personajes.
 
-El objetivo es transformar un anti-patrón con `fetch` directo en un pipeline ordenado:
+La aplicación está organizada en capas:
 
-```text
-buildUrl -> fetchJson -> fetchCharacters -> toCharacterProfile -> renderGrid
-```
-
-Importante: este README guía el proceso, pero no entrega la solución completa.
-La idea es que completes los TODOs en clase siguiendo los pasos.
+- `src/services/fetchJson.js` — helper de red que hace `fetch()` y valida `response.ok`
+- `src/services/rmApi.js` — construye la URL y obtiene los personajes de la API
+- `src/transform/character.js` — transforma los datos crudos de la API en objetos claros para la UI
+- `src/ui/characterGrid.js` — renderiza el estado de la aplicación y las cards en el DOM
+- `src/main.js` — orquesta el flujo de carga, el manejo de estados y los eventos de usuario
 
 ---
 
-## Cómo correr el starter
+## Cómo funciona
 
-Desde esta carpeta:
+1. `src/main.js` inicia la aplicación y carga la galería.
+2. `src/services/rmApi.js` crea la URL de búsqueda y llama a `fetchJson()`.
+3. `fetchJson()` obtiene la respuesta HTTP y valida que `response.ok` sea verdadero.
+4. `rmApi.fetchCharacters()` extrae `data.results` del JSON devuelto por la API.
+5. `rmApi.getFirstSixCharacters()` retorna solo los primeros 6 personajes.
+6. `src/transform/character.js` transforma cada personaje crudo en un `profile` limpio:
+   - `id`
+   - `name`
+   - `image`
+   - `status`
+   - `statusClass`
+   - `species`
+   - `originName`
+   - `locationName`
+7. `src/ui/characterGrid.js` renderiza el estado actual:
+   - `loading`
+   - `error`
+   - `success`
+
+El flujo completo es un pipeline claro y ordenado: datos de red → transformación → render.
+
+---
+
+## Estructura de archivos
+
+- `index.html` — contiene la estructura HTML de la app y los contenedores de estados.
+- `styles.css` — define el diseño de la grilla, las tarjetas y los estados de carga/error.
+- `src/main.js` — controla el estado, dispara la carga de personajes y escucha el botón de retry.
+- `src/services/fetchJson.js` — hace la petición HTTP y arroja error si el status no es OK.
+- `src/services/rmApi.js` — arma la URL y devuelve los personajes de la API.
+- `src/transform/character.js` — normaliza los datos crudos para la UI.
+- `src/ui/characterGrid.js` — crea las tarjetas HTML y muestra mensajes al usuario.
+
+---
+
+## Cómo ejecutar
+
+### Clonar el proyecto
+
+Si querés ejecutar este proyecto en cualquier equipo, seguí estos pasos:
+
+1. Abrí la carpeta donde querés guardar el proyecto.
+2. Abrí una terminal en esa carpeta (por ejemplo "Open Bash Here" o "Open PowerShell Here").
+3. Ejecutá:
+
+```bash
+# Clonar el repositorio desde GitHub
+# Reemplazá la URL por la URL real del repositorio si es necesario
+git clone https://github.com/tu-usuario/tu-repositorio.git
+
+# Entrar a la carpeta creada por Git
+git checkout main
+cd tu-repositorio
+```
+
+> Nota: necesitás tener instalado Git y Node.js (o al menos `npx` disponible).
+
+### Opción 1: con `live-server`
+
+Desde la carpeta del proyecto en la terminal:
 
 ```bash
 npx --yes live-server --port=8095
 ```
 
-Abrir:
+Después abrí en el navegador:
 
 ```text
 http://127.0.0.1:8095
 ```
 
-Qué vas a ver al inicio:
+### Opción 2: con la extensión Live Server de VS Code
 
-- La app carga.
-- No se renderizan cards todavía.
-- La consola muestra un warning didáctico del anti-patrón.
-
-Eso es esperado: el starter está preparado para mostrar por qué necesitamos el pipeline.
+1. Abrí `index.html` en VS Code.
+2. Hacé clic en "Go Live".
+3. Abrí la URL que te muestra la extensión.
 
 ---
 
-## Qué archivos NO se tocan
+## Qué esperar
 
-Estos archivos ya están completos:
-
-```text
-index.html
-styles.css
-src/services/fetchJson.js
-```
-
-Por qué:
-
-- `index.html` ya tiene los contenedores de estado.
-- `styles.css` ya tiene la grilla, cards, hover y responsive.
-- `fetchJson.js` ya fue trabajado en M3L3.
+- Al inicio se carga la galería de personajes.
+- Si la app está en proceso, aparece el estado `loading`.
+- Si ocurre un error, muestra un mensaje amigable.
+- Si todo sale bien, renderiza una grilla con hasta 6 personajes.
+- El botón `Retry` vuelve a cargar la galería en caso de falla.
 
 ---
 
-## Qué archivos vas a completar
+## Notas importantes
 
-```text
-src/services/rmApi.js
-src/transform/character.js
-src/ui/characterGrid.js
-src/main.js
-```
-
-Orden recomendado:
-
-```text
-1. Inspeccionar JSON en el navegador
-2. Completar rmApi.js
-3. Completar character.js
-4. Completar characterGrid.js
-5. Reescribir main.js
-6. Probar responsive y errores
-```
+- `fetchJson.js` es la única capa que validará `response.ok`.
+- La API devuelve los personajes en `data.results`, no en `data` directamente.
+- `origin` y `location` son objetos anidados, por eso el código usa `?.` para acceder de forma segura.
+- La transformación en `character.js` asegura que la UI siempre reciba datos consistentes.
 
 ---
 
-## Paso 1 — Inspeccionar el JSON antes de codear
+## Ejemplo de uso
 
-Abrí esta URL:
+1. Abrir la app en el navegador.
+2. Ver el estado de carga.
+3. Confirmar que aparecen hasta 6 cards.
+4. En caso de error, usar el botón `Retry`.
 
-```text
-https://rickandmortyapi.com/api/character/?name=rick
-```
-
-Anotá:
-
-- Qué claves hay en la raíz.
-- Dónde está el array de personajes.
-- Qué campos tiene `results[0]`.
-- Si `origin` es string u objeto.
-- Si `location` es string u objeto.
-
-Pistas:
-
-```text
-Los personajes no están en data directamente.
-Hay una propiedad que contiene el array.
-origin y location son objetos anidados.
-```
-
-Checklist:
-
-- [ ] Identifiqué dónde está el array.
-- [ ] Identifiqué el campo `name`.
-- [ ] Identifiqué el campo `image`.
-- [ ] Identifiqué cómo llegar a `origin.name`.
-- [ ] Identifiqué cómo llegar a `location.name`.
-
----
-
-## Paso 2 — Completar `src/services/rmApi.js`
-
-Este archivo se encarga de hablar con la Rick & Morty API.
-No transforma datos y no toca el DOM.
-
-### TODO 1: `buildUrl({ name, page = 1 })`
-
-Necesitás construir una URL segura usando `URLSearchParams`.
-
-No uses concatenación manual.
-
-Pistas:
-
-```text
-Crear params con name y page.
-Convertir page a string.
-Usar name.trim().
-Retornar BASE_URL + "?" + params.toString().
-```
-
-Checkpoint:
-
-```js
-const api = await import("./src/services/rmApi.js");
-api.buildUrl({ name: "Rick & Morty", page: 1 });
-```
-
-Deberías ver una URL con el `&` codificado, no roto como separador de query.
-
-### TODO 2: `fetchCharacters(name)`
-
-Necesitás:
-
-1. Construir la URL con `buildUrl`.
-2. Pedir datos con `fetchJson`.
-3. Extraer el array correcto del JSON.
-4. Validar que sea array y que no esté vacío.
-5. Retornar el array raw.
-
-Pistas:
-
-```text
-La API devuelve un objeto raíz.
-El array está dentro de una propiedad.
-Si esa propiedad no es array, hay que lanzar error.
-```
-
-Checkpoint:
-
-```js
-const api = await import("./src/services/rmApi.js");
-await api.fetchCharacters("rick");
-```
-
-Debería devolver un array de personajes raw.
-
-### TODO 3: `getFirstSixCharacters(name)`
-
-Necesitás:
-
-1. Llamar a `fetchCharacters(name)`.
-2. Tomar solo los primeros 6.
-
-Pista:
-
-```text
-Los arrays tienen un método para tomar una porción sin mutar el original.
-```
-
-Checkpoint:
-
-```js
-const api = await import("./src/services/rmApi.js");
-const chars = await api.getFirstSixCharacters("rick");
-chars.length;
-```
-
-Esperado:
-
-```text
-6
-```
-
----
-
-## Paso 3 — Completar `src/transform/character.js`
-
-Este archivo convierte el JSON crudo de la API en un ViewModel.
-
-Regla:
-
-```text
-Recibe raw JSON.
-Devuelve objeto plano y seguro para la UI.
-No hace fetch.
-No toca el DOM.
-```
-
-### TODO 1: `getOriginName(raw)`
-
-Necesitás leer el origen de forma segura.
-
-Pistas:
-
-```text
-origin puede ser objeto.
-origin podría faltar.
-Usá optional chaining.
-Usá nullish coalescing para default.
-```
-
-Checkpoint mental:
-
-```text
-Si raw.origin existe, quiero raw.origin.name.
-Si no existe, quiero "Unknown".
-```
-
-### TODO 2: `getLocationName(raw)`
-
-Mismo patrón que origin, pero con location.
-
-Checkpoint mental:
-
-```text
-Si raw.location existe, quiero raw.location.name.
-Si no existe, quiero "Unknown".
-```
-
-### TODO 3: `getStatusClass(status)`
-
-Necesitás traducir valores de API a clases CSS.
-
-La API devuelve:
-
-```text
-Alive
-Dead
-unknown
-```
-
-El CSS espera:
-
-```text
-alive
-dead
-unknown
-```
-
-Pista:
-
-```text
-Un objeto mapa funciona mejor que muchos if.
-```
-
-### TODO 4: `toCharacterProfile(rawCharacter)`
-
-Necesitás construir este contrato:
-
-```text
-id
-name
-image
-status
-statusClass
-species
-originName
-locationName
-```
-
-Pistas:
-
-- Para campos raíz, podés usar destructuring.
-- Para campos anidados, usá helpers.
-- Para defaults, usá `??`.
-- No uses `||` para defaults de datos de API.
-
-Checkpoint:
-
-```js
-const t = await import("./src/transform/character.js");
-t.toCharacterProfile({
-  id: 1,
-  name: "Test Rick",
-  status: "Alive",
-  species: "Human",
-  image: "image.jpg",
-  origin: null,
-  location: { name: "Earth" },
-});
-```
-
-No debería crashear aunque `origin` sea `null`.
-
-### TODO 5: `toCharacterProfileList(rawArray)`
-
-Necesitás transformar un array entero.
-
-Pista:
-
-```text
-Cuando quiero array -> array transformado, pienso en map.
-```
+¡Listo! Este README describe cómo funciona la app y cómo ejecutarla correctamente.
 
 Checkpoint:
 

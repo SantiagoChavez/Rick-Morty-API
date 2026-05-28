@@ -8,7 +8,11 @@
 // ============================================================
 
 // TODO 1: Implementar getOriginName(raw)
-//
+export function getOriginName(raw) {
+    return raw.origin?.name ?? "Unknown";
+}
+
+
 // El campo origin en el JSON es un OBJETO anidado: { name: "...", url: "..." }
 // No un string. Si accedés con raw.origin.name sin validar -> TypeError.
 //
@@ -26,7 +30,11 @@
 // function getOriginName(raw) { ... }
 
 // TODO 2: Implementar getLocationName(raw)
-//
+export function getLocationName(raw) {
+    return raw.location?.name ?? "Unknown";
+}
+
+
 // Mismo patrón que getOriginName.
 // RUTA en el JSON: results[0].location.name
 //
@@ -34,6 +42,14 @@
 
 // TODO 3: Implementar getStatusClass(status)
 //
+function getStatusClass(status) {
+  const map = {
+    Alive: "alive",
+    Dead: "dead",
+    unknown: "unknown",
+  };
+  return map[status] ?? "unknown";
+}
 // Mapea el status de la API a la clase CSS del dot de color.
 // Valores posibles que devuelve la API: "Alive", "Dead", "unknown"
 // Clases CSS en styles.css: "alive", "dead", "unknown"
@@ -43,6 +59,19 @@
 // function getStatusClass(status) { ... }
 
 // TODO 4: Implementar toCharacterProfile(rawCharacter)
+function toCharacterProfile(rawCharacter) {
+    const { id, name, status, species, image } = rawCharacter;
+    return {
+        id,
+        name: name ?? "Desconocido",
+        image,
+        status,
+        statusClass: getStatusClass(status),
+        species: species ?? "Desconocido",
+        originName: getOriginName(rawCharacter),
+        locationName: getLocationName(rawCharacter),
+    };
+}
 //
 // Función principal de transformación.
 //
@@ -74,6 +103,8 @@
 // TODO 5: Implementar toCharacterProfileList(rawArray)
 //
 // Transforma un ARRAY de personajes raw -> array de ViewModels.
-// Usa Array.map() aplicando toCharacterProfile a cada ítem.
+//Array.map() aplicando toCharacterProfile a cada ítem.
 //
-// export function toCharacterProfileList(rawArray) { ... }
+export function toCharacterProfileList(rawArray) {
+    return rawArray.map(toCharacterProfile);    
+}
